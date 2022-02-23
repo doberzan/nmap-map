@@ -7,7 +7,8 @@ import textwrap
 def parse_scan_xml(target_file):
     data = xparse.parse(target_file).getroot()
     hosts = []
-
+    args = data.get('args')
+    print(len(args))
     for host in data.findall('host'):
         h_addr = host.find('address').get('addr')
         h_ports = [] 
@@ -23,7 +24,8 @@ def parse_scan_xml(target_file):
             "address": h_addr,
             "ports": h_ports,
             "services": h_services,
-            "os": os
+            "os": os,
+            "args": args
         })
     return hosts
 
@@ -34,10 +36,11 @@ def create_map(hosts, output_file):
     buffer_space = 50    
     font_size = 25
     fontos_size = 20
+    tile_space = 50
     hosts_per_line = math.ceil(math.sqrt(num_hosts))
     print("Hosts: " + str(num_hosts))
     width = (buffer_space * hosts_per_line) + (host_w*hosts_per_line) + buffer_space
-    height = (buffer_space * hosts_per_line) + (host_h*hosts_per_line) + buffer_space
+    height = (buffer_space * hosts_per_line) + (host_h*hosts_per_line) + buffer_space + tile_space
 
     win_logo = Image.open("resources/win_logo.png")
     lin_logo = Image.open("resources/lin_logo.png").convert("RGBA")
@@ -52,9 +55,11 @@ def create_map(hosts, output_file):
     img = Image.new(mode="RGB", size=(width, height))
     draw = ImageDraw.Draw(img)
     
-
+    args = hosts[0]['args']
+    draw.text(((width)/3, 10), "Command: " + str(args), fill=(255, 255, 255), font=font)
+    
     root_x = buffer_space
-    root_y = buffer_space
+    root_y = buffer_space + tile_space
     for h in hosts:
         tmp_y = root_y
         draw.rectangle([(root_x, root_y), (root_x+host_w, root_y+host_h)], fill ="gray", outline ="gray")
